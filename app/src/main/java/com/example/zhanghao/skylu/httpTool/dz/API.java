@@ -1,24 +1,24 @@
 package com.example.zhanghao.skylu.httpTool.dz;
 
-import com.example.zhanghao.skylu.httpTool.APICommon;
-import com.example.zhanghao.skylu.httpTool.InstanceJM;
+import android.util.Log;
+
+import com.example.zhanghao.skylu.httpTool.APICommonJM;
 
 /**
  * API接口
  *
  * @author Administrator
  */
-public class API implements APICommon {
+public class API implements APICommonJM {
 
 	private HttpTool send = new HttpTool();
 	private static String logName = "dz";
 
-	private static PrintLog log = new PrintLog();
-
 	private static final API instance = new API();
 	private String url = "http://api.jmyzm.com/http.do";
 
-	public static API getInstance() {
+	public static API
+	getInstance() {
 		return instance;
 	}
 
@@ -52,9 +52,9 @@ public class API implements APICommon {
 				resp.setResult(result);
 			}
 
-			log.info(logName, "登录，账号：" + uid + ",返回:" + result);
+			Log.i(logName, "登录，账号：" + uid + ",返回:" + result);
 		} catch (Exception e) {
-			log.error(logName, "登录异常，账号：" + uid +  ",e:"
+			Log.e(logName, "登录异常，账号：" + uid +  ",e:"
 					+ PrintLog.printStack(e));
 			resp.setState(false);
 		}
@@ -121,7 +121,7 @@ public class API implements APICommon {
 		try {
 			result = send.httGet(url, "action=getMobilenum&uid="
 					+ uid + "&token=" + token + "&pid=" + pid + "&province="+ java.net.URLEncoder.encode(province,"UTF-8")+"&operator="+operator+"&notProvince="+java.net.URLEncoder.encode(notProvince,"UTF-8")+"&vno="+vno+"&city="+java.net.URLEncoder.encode(city,"UTF-8") , "UTF-8");
-			log.info(logName, "获取一个手机号，账号：" + uid  + ",pid:"
+			Log.i(logName, "获取一个手机号，账号：" + uid  + ",pid:"
 					+ pid + ",返回:" + result);
 
 			String reset[] = result.split("\\|");
@@ -136,7 +136,7 @@ public class API implements APICommon {
 			}
 
 		} catch (Exception e) {
-			log.error(logName, "获取一个手机号，账号：" + uid
+			Log.e(logName, "获取一个手机号，账号：" + uid
 					+ ",pid:" + pid + ",e=" + PrintLog.printStack(e));
 			resp.setState(false);
 		}
@@ -182,7 +182,7 @@ public class API implements APICommon {
 			result = send.httGet(url,
 					"action=getMobilenum&uid=" + uid + "&token=" + token
 							+ "&pid=" + pid + "&size=" + size +"&province="+ java.net.URLEncoder.encode(province,"UTF-8")+"&operator="+operator+"&notProvince="+java.net.URLEncoder.encode(notProvince,"UTF-8")+"&vno="+vno+"&city="+java.net.URLEncoder.encode(city,"UTF-8"), "UTF-8");
-			log.info(logName, "获取一个手机号，账号：" + uid  + ",pid:"
+			Log.i(logName, "获取一个手机号，账号：" + uid  + ",pid:"
 					+ pid + ",返回:" + result);
 
 			String reset[] = result.split("\\|");
@@ -198,7 +198,7 @@ public class API implements APICommon {
 			}
 
 		} catch (Exception e) {
-			log.error(logName, "获取一个手机号，账号：" + uid
+			Log.e(logName, "获取一个手机号，账号：" + uid
 					+ ",pid:" + pid + ",e=" + PrintLog.printStack(e));
 			resp.setState(false);
 		}
@@ -225,7 +225,7 @@ public class API implements APICommon {
 					"action=getVcodeAndHoldMobilenum&uid=" + uid + "&token="
 							+ token + "&mobile=" + mobile + "&next_pid="
 							+ next_pid + "&author_uid=" + author_uid, "UTF-8");
-			log.info(logName, "获取验证码并继续使用这个手机号，mobile:" + mobile + ",uid："
+			Log.i(logName, "获取验证码并继续使用这个手机号，mobile:" + mobile + ",uid："
 					+ uid  + ",next_pid:" + next_pid
 					+ ",author_uid:" + author_uid + ",返回:" + result);
 
@@ -243,7 +243,7 @@ public class API implements APICommon {
 			}
 
 		} catch (Exception e) {
-			log.error(logName, "获取验证码并继续使用这个手机号，mobile:" + mobile + ",uid："
+			Log.e(logName, "获取验证码并继续使用这个手机号，mobile:" + mobile + ",uid："
 					+ uid  + ",next_pid:" + next_pid
 					+ ",author_uid:" + author_uid + ",e:"
 					+ PrintLog.printStack(e));
@@ -283,13 +283,13 @@ public class API implements APICommon {
 				resp.setResult(result);
 			}
 
-			log.info(logName, "获取验证码并不再使用这个手机号，mobile:" + mobile + ",uid："
+			Log.i(logName, "获取验证码并不再使用这个手机号，mobile:" + mobile + ",uid："
 					+ uid  + ",author_uid:" + author_uid
 					+ ",返回:" + result + ",state:" + resp.isState() + ",mobile:"
 					+ resp.getMobile());
 
 		} catch (Exception e) {
-			log.error(logName, "获取验证码并不再使用这个手机号，mobile:" + mobile + ",uid："
+			Log.e(logName, "获取验证码并不再使用这个手机号，mobile:" + mobile + ",uid："
 					+ uid  + ",author_uid:" + author_uid
 					+ ",e:" + PrintLog.printStack(e));
 			resp.setState(false);
@@ -315,7 +315,7 @@ public class API implements APICommon {
 			result = send.httGet(url,
 					"action=addIgnoreList&uid=" + uid + "&token=" + token
 							+ "&mobiles=" + mobiles + "&pid=" + pid, "UTF-8");
-			log.info(logName, "添加若干手机号到黑名单，mobiles:" + mobiles + ",uid：" + uid
+			Log.i(logName, "添加若干手机号到黑名单，mobiles:" + mobiles + ",uid：" + uid
 					+ ",pid:" + pid + ",返回:" + result);
 
 			if (result.matches("\\d+")) {
@@ -329,7 +329,7 @@ public class API implements APICommon {
 			}
 
 		} catch (Exception e) {
-			log.error(logName, "添加若干手机号到黑名单，mobiles:" + mobiles + ",uid：" + uid
+			Log.e(logName, "添加若干手机号到黑名单，mobiles:" + mobiles + ",uid：" + uid
 					+ ",pid:" + pid + ",e:"
 					+ PrintLog.printStack(e));
 			resp.setState(false);
@@ -351,11 +351,11 @@ public class API implements APICommon {
 			result = send.httGet(url,
 					"action=getRecvingInfo&uid=" + uid + "&token=" + token
 							+ "&pid=" + pid, "UTF-8");
-			log.info(logName + "GetRecvingInfo", "获取当前用户正在使用的号码列表，pid:" + pid
+			Log.i(logName + "GetRecvingInfo", "获取当前用户正在使用的号码列表，pid:" + pid
 					+ ",uid：" + uid  + ",返回:" + result);
 
 		} catch (Exception e) {
-			log.error(logName + "GetRecvingInfo", "获取当前用户正在使用的号码列表，pid:" + pid
+			Log.e(logName + "GetRecvingInfo", "获取当前用户正在使用的号码列表，pid:" + pid
 					+ ",uid：" + uid  + ",e:"
 					+ PrintLog.printStack(e));
 			// resp.setState(false);
@@ -377,7 +377,7 @@ public class API implements APICommon {
 		try {
 			result = send.httGet(url, "action=getUserInfos&uid="
 					+ uid + "&token=" + token, "UTF-8");
-			log.info(logName, "获取用户获取个人用户信息，账号：" + uid
+			Log.i(logName, "获取用户获取个人用户信息，账号：" + uid
 					+ ",返回:" + result);
 
 			String[] reset = result.split(";");
@@ -396,7 +396,7 @@ public class API implements APICommon {
 			}
 
 		} catch (Exception e) {
-			log.error(logName, "获取用户获取个人用户信息，账号：" + uid
+			Log.e(logName, "获取用户获取个人用户信息，账号：" + uid
 					+ ",e=" + PrintLog.printStack(e));
 			resp.setState(false);
 		}

@@ -1,5 +1,9 @@
 package com.example.zhanghao.skylu.httpTool.RuoKuai;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.example.zhanghao.skylu.httpTool.APICommonDM;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -15,9 +19,20 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -31,9 +46,16 @@ import org.xml.sax.SAXException;
 
 
 
-public class RuoKuai {
+public class RuoKuai implements APICommonDM {
+    private static final RuoKuai instance = new RuoKuai();
 
-	private static String httpRequestData(String url, String param) throws IOException{
+    public static RuoKuai getInstance(){
+        return instance;
+    }
+
+
+
+	public static   String httpRequestData(String url, String param) throws IOException{
 		// TODO Auto-generated method stub
 		URL u;
 		HttpURLConnection con = null;
@@ -41,7 +63,18 @@ public class RuoKuai {
 		StringBuffer buffer = new StringBuffer();
 
 		u = new URL(url);
-		con = (HttpURLConnection)u.openConnection();
+		if (u.getProtocol().toUpperCase().equals("HTTPS")) {
+			trustAllHosts();
+
+				HttpsURLConnection https = (HttpsURLConnection) u
+						.openConnection();
+				https.setHostnameVerifier(DO_NOT_VERIFY);
+			con = https;
+
+		} else {
+			con = (HttpURLConnection)u.openConnection();
+
+		}
 		con.setRequestMethod("POST");
 		con.setDoOutput(true);
 		con.setDoInput(true);
@@ -64,10 +97,10 @@ public class RuoKuai {
 		return buffer.toString();
 	}
 
-	public static String Post(){
+	public  String Post(){
 		String ret =null;
 		try {
-			URL u = new URL("http://api.ruokuai.com/info.xml");
+			URL u = new URL("http://api.ruokuai.com/info.json");
 
 			HttpURLConnection con = (HttpURLConnection) u.openConnection();
 			con.setDoInput(true);
@@ -163,31 +196,32 @@ public class RuoKuai {
 	 * @param password
 	 * @return
 	 */
-	public static String getInFo(String username,String password){
+	public JSONObject getInFo(String username, String password){
 		String ret = "";
 		String param = String.format("username=%s&password=%s",username,password);
+		JSONObject jsonObject= null;
 		try{
-			ret = httpRequestData("http://api.ruokuai.com/info.xml",param);
-		}catch(Exception e){
-			ret = "未知问题";
+			ret = httpRequestData("http://api.ruokuai.com/info.json",param);
+			jsonObject = JSON.parseObject(ret);
+			return jsonObject;
+        }catch(Exception e){
+			jsonObject = new JSONObject();
+			jsonObject.put("error","未知错误");
 		}
-
-
-		return ret;
-
+		return jsonObject;
 	}
 
 
 	/**
 	 * 答题
-	 * @param url 			请求URL，不带参数 如：http://api.ruokuai.com/create.xml
-	 * @param param			请求参数，如：username=test&password=1
-	 * @param data			图片二进制流
+	 * @param url            请求URL，不带参数 如：http://api.ruokuai.com/create.json
+	 * @param param            请求参数，如：username=test&password=1
+	 * @param data            图片二进制流
 	 * @return				平台返回结果XML样式
 	 * @throws IOException
 	 */
-	public static String httpPostImage(String url, String param,
-									   byte[] data) throws IOException {
+	public Map<String, String> httpPostImage(String url, String param,
+											 byte[] data) throws IOException {
 		long time = (new Date()).getTime();
 		URL u = null;
 		HttpURLConnection con = null;
@@ -196,8 +230,18 @@ public class RuoKuai {
 		OutputStream out = null;
 
 		u = new URL(url);
+		if (u.getProtocol().toUpperCase().equals("HTTPS")) {
+			trustAllHosts();
 
-		con = (HttpURLConnection) u.openConnection();
+			HttpsURLConnection https = (HttpsURLConnection) u
+					.openConnection();
+			https.setHostnameVerifier(DO_NOT_VERIFY);
+			con = https;
+
+		} else {
+			con = (HttpURLConnection)u.openConnection();
+
+		}
 		con.setRequestMethod("POST");
 		//con.setReadTimeout(95000);
 		con.setConnectTimeout(95000); //此值与timeout参数相关，如果timeout参数是90秒，这里就是95000，建议多5秒
@@ -237,28 +281,83 @@ public class RuoKuai {
 			buffer.append(temp);
 			buffer.append("\n");
 		}
+        String result = buffer.toString();
+        return (Map<String,String>) JSON.parse(result);
+	}
 
-		return buffer.toString();
+	public  RuoKuaiSuccess httpPostBase64Image(String url, String param,
+										 String pic64) throws IOException {
+		long time = (new Date()).getTime();
+		URL u = null;
+		HttpURLConnection con = null;
+		String boundary = "----------" + MD5(String.valueOf(time));
+		String boundarybytesString = "\r\n--" + boundary + "\r\n";
+		OutputStream out = null;
+
+		u = new URL(url);
+
+		con = (HttpURLConnection) u.openConnection();
+		con.setRequestMethod("POST");
+		//con.setReadTimeout(95000);
+		con.setConnectTimeout(95000); //此值与timeout参数相关，如果timeout参数是90秒，这里就是95000，建议多5秒
+		con.setDoOutput(true);
+		con.setDoInput(true);
+		con.setUseCaches(true);
+		con.setRequestProperty("Content-Type",
+				"multipart/form-data; boundary=" + boundary);
+
+		out = con.getOutputStream();
+
+		for (String paramValue : param.split("[&]")) {
+			out.write(boundarybytesString.getBytes("UTF-8"));
+			String paramString = "Content-Disposition: form-data; name=\""
+					+ paramValue.split("[=]")[0] + "\"\r\n\r\n" + paramValue.split("[=]")[1];
+			out.write(paramString.getBytes("UTF-8"));
+		}
+		out.write(boundarybytesString.getBytes("UTF-8"));
+
+		String paramString = "Content-Disposition: form-data; name=\"image\"; filename=\""
+				+ "sample."+pic64.substring(pic64.indexOf("/")+1,pic64.indexOf(";")) + "\"\nContent-Transfer-Encoding: base64\r\nContent-Type: application/octet-stream\r\n\r\n";
+		out.write(paramString.getBytes("UTF-8"));
+
+
+		String tailer = "\r\n--" + boundary + "--\r\n";
+		out.write(tailer.getBytes("UTF-8"));
+
+		out.flush();
+		out.close();
+
+		StringBuffer buffer = new StringBuffer();
+		BufferedReader br = new BufferedReader(new InputStreamReader(con
+				.getInputStream(), "UTF-8"));
+		String temp;
+		while ((temp = br.readLine()) != null) {
+			buffer.append(temp);
+			buffer.append("\n");
+		}
+		String result = buffer.toString();
+		RuoKuaiSuccess ruoKuaiSuccess = JSON.parseObject(result, RuoKuaiSuccess.class);
+		return ruoKuaiSuccess;
 	}
 
 
 
 	/**
 	 * 上传题目图片返回结果
-	 * @param username		用户名
-	 * @param password		密码
-	 * @param typeid		题目类型
-	 * @param timeout		任务超时时间
-	 * @param softid		软件ID
-	 * @param softkey		软件KEY
-	 * @param filePath		题目截图或原始图二进制数据路径
+	 * @param username        用户名
+	 * @param password        密码
+	 * @param typeid        题目类型
+	 * @param timeout        任务超时时间
+	 * @param softid        软件ID
+	 * @param softkey        软件KEY
+	 * @param filePath        题目截图或原始图二进制数据路径
 	 * @return
 	 * @throws IOException
 	 */
-	public static String createByPost(String username, String password,
-									  String typeid, String timeout, String softid, String softkey,
-									  String filePath) {
-		String result = "";
+	public Map<String, String> createByPost(String username, String password,
+											String typeid, String timeout, String softid, String softkey,
+											String filePath) {
+		Map<String, String>  result = null;
 		String param = String.format(
 				"username=%s&password=%s&typeid=%s&timeout=%s&softid=%s&softkey=%s",
 				username, password, typeid, timeout, softid, softkey);
@@ -271,16 +370,20 @@ public class RuoKuai {
 				fis.read(data, 0, size);
 				if(null != fis) fis.close();
 
-				if (data.length > 0)
-					result = RuoKuai.httpPostImage("http://api.ruokuai.com/create.xml", param, data);
+				if (data.length > 0) {
+					result = httpPostImage("http://api.ruokuai.com/create.json", param, data);
+				}
 			}
 		} catch(Exception e) {
-			result = "未知问题";
+			System.out.println(e.getMessage());
+			result = new HashMap<>();
+			result.put("error",e.getMessage());
 		}
-
 
 		return result;
 	}
+
+
 
 
 	/**
@@ -293,29 +396,77 @@ public class RuoKuai {
 	 * @param url
 	 * @return
 	 */
-	public static String createByUrl(String softId, String softKey, String typeid, String username, String password, String url) {
+	@Override
+	public Map<String, String> creatByUrl(String softId, String softKey, String typeid, String username, String password, String url, String body, Map<String, String> headers) {
 		// TODO Auto-generated method stub
 		String param = String.format("username=%s&password=%s&typeid=%s&timeout=%s&softid=%s&softkey=%s", username,password,typeid,"90",softId,softKey);
-		ByteArrayOutputStream baos = null;
-		String ret;
+		Map<String, String>  ret=null;
 
+		byte[] imageFromNetByUrl = getImageFromNetByUrl(url,headers,body);
 		try {
-			URL u = new URL(url);
-			BufferedImage image = ImageIO.read(u);
-
-			baos = new ByteArrayOutputStream();
-			ImageIO.write(image, "jpg",baos);
-			baos.flush();
-			byte[] data = baos.toByteArray();
-			baos.close();
-			ret=httpPostImage("http://api.ruokuai.com/create.xml",param,data);
-		} catch (Exception e) {
-			// TODO: handle exception
-			return "未知错误";
+			ret = httpPostImage("http://api.ruokuai.com/create.json", param, imageFromNetByUrl);
+			return ret;
+		} catch (IOException e) {
+			ret = new HashMap<>();
+			ret.put("error",e.getMessage());
+            return ret;
 		}
 
-		return ret;
 	}
+
+	@Override
+	public RuoKuaiSuccess httpPostImageBase64(String softId, String softKey, String typeid,String timeout, String username, String password, String base64) {
+		String param = String.format(
+				"username=%s&password=%s&typeid=%s&timeout=%s&softid=%s&softkey=%s",
+				username, password, typeid, timeout, softId, softKey);
+		try {
+			return httpPostBase64Image("http://api.ruokuai.com/create.json",param,base64);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return  new RuoKuaiSuccess("未知错误","-1","","","");
+		}
+	}
+
+	public  byte[] getImageFromNetByUrl(String strUrl,Map<String,String> headers,String body) {
+		try {
+			URL url = new URL(strUrl+"?"+body);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(5 * 1000);
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			Set<String> strings = headers.keySet();
+			for (String key : strings){
+				String val = headers.get(key);
+				conn.setRequestProperty(key,val);
+			}
+			if (url.getProtocol().toUpperCase().equals("HTTPS")) {
+				trustAllHosts();
+				HttpsURLConnection https = (HttpsURLConnection) url
+						.openConnection();
+				https.setHostnameVerifier(DO_NOT_VERIFY);
+				conn = https;
+			}
+            InputStream inStream = conn.getInputStream();// 通过输入流获取图片数据
+			ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+			byte[] buffer = new byte[1024];
+			int len = 0;
+			while ((len = inStream.read(buffer)) != -1) {
+				outStream.write(buffer, 0, len);
+			}
+			byte[] btImg = outStream.toByteArray();// 得到图片的二进制数据
+
+			inStream.close();
+			outStream.close();
+			conn.disconnect();
+			return btImg;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 
 	/**
 	 * 报错
@@ -327,7 +478,7 @@ public class RuoKuai {
 	 * @return
 	 */
 
-	public static String error(String username, String password, String softId,
+	public  String error(String username, String password, String softId,
 							   String softKey, String error) {
 		// TODO Auto-generated method stub
 		String ret="";
@@ -350,7 +501,7 @@ public class RuoKuai {
 	 * @return
 	 */
 
-	public static String zhuce(String username, String password, String email) {
+	public  String zhuce(String username, String password, String email) {
 		// TODO Auto-generated method stub
 		String ret="";
 		String param = String.format("username=%s&password=%s&email=%s", username,password,email);
@@ -371,7 +522,7 @@ public class RuoKuai {
 	 * @return
 	 */
 
-	public static String chongzhi(String username, String kid, String key) {
+	public  String chongzhi(String username, String kid, String key) {
 		// TODO Auto-generated method stub
 
 		String ret="";
@@ -385,4 +536,38 @@ public class RuoKuai {
 
 		return ret;
 	}
+
+	public static void trustAllHosts() {
+		// Create a trust manager that does not validate certificate chains
+		// Android use X509 cert
+		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+				return new java.security.cert.X509Certificate[] {};
+			}
+
+			public void checkClientTrusted(X509Certificate[] chain,
+										   String authType) throws CertificateException {
+			}
+
+			public void checkServerTrusted(X509Certificate[] chain,
+										   String authType) throws CertificateException {
+			}
+		} };
+
+		// Install the all-trusting trust manager
+		try {
+			SSLContext sc = SSLContext.getInstance("TLS");
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			HttpsURLConnection
+					.setDefaultSSLSocketFactory(sc.getSocketFactory());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public final static HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+		public boolean verify(String hostname, SSLSession session) {
+			return true;
+		}
+	};
 }

@@ -1,9 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".activities.ProxyActivity">
 
-</android.support.constraint.ConstraintLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="300dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="20dp"
+            android:layout_height="match_parent">
+
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/edt_order_no"
+                android:layout_width="match_parent"
+
+                android:layout_height="wrap_content"
+                android:hint="订单号" />
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="300dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="20dp"
+            android:layout_height="match_parent">
+
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/edt_spider_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="spiderId" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <Button
+            android:id="@+id/btn_save_xdl"
+            android:layout_width="125dp"
+            android:layout_height="match_parent"
+            android:layout_margin="5dip"
+            android:layout_gravity="center"
+            android:background="@drawable/btn_bottom_confirm_bg"
+            android:gravity="center"
+            android:text="登陆"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

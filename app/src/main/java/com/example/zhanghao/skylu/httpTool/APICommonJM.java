@@ -8,7 +8,7 @@ import com.example.zhanghao.skylu.httpTool.dz.GetVcodeAndHoldMobilenumResp;
 import com.example.zhanghao.skylu.httpTool.dz.GetVcodeAndReleaseMobileResp;
 import com.example.zhanghao.skylu.httpTool.dz.LogonResp;
 
-public interface APICommon {
+public interface APICommonJM {
     LogonResp loginIn(String uid, String pwd);
     GetMobilenumResp getMobilenum(int pid, String uid, String token);
     GetMultiMobilenumResp getMobilenum(int pid, String uid,String token, int size);

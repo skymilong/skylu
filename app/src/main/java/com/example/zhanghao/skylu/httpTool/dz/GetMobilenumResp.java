@@ -4,6 +4,9 @@ public class GetMobilenumResp {
 	private String mobile;
 	private String result;
 
+	public GetMobilenumResp() {
+	}
+
 	public boolean isState() {
 		return state;
 	}
@@ -24,6 +27,9 @@ public class GetMobilenumResp {
 		this.result = result;
 	}
 
-
-
+	public GetMobilenumResp(boolean state, String mobile, String result) {
+		this.state = state;
+		this.mobile = mobile;
+		this.result = result;
+	}
 }

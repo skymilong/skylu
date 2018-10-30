@@ -1,4 +1,4 @@
-package com.example.zhanghao.skylu;
+package com.example.zhanghao.skylu.activities;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.zhanghao.skylu.Entity.SpinnerJMItem;
+import com.example.zhanghao.skylu.R;
 import com.example.zhanghao.skylu.httpTool.APICommonDM;
 import com.example.zhanghao.skylu.httpTool.APICommonJM;
 import com.example.zhanghao.skylu.httpTool.InstanceYZ;
@@ -43,7 +44,8 @@ public class VerificationActivity extends AppCompatActivity implements View.OnCl
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_verification);
-
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("账号登录");
         context = this;
 
         initView();
@@ -58,10 +60,10 @@ public class VerificationActivity extends AppCompatActivity implements View.OnCl
         listJM.add(new SpinnerJMItem("短租","dz"));
         listDM.add(new SpinnerJMItem("若快","rk"));
 
-        ArrayAdapter<SpinnerJMItem> adapterJM= new ArrayAdapter<SpinnerJMItem>(context,
+        ArrayAdapter<SpinnerJMItem> adapterJM= new ArrayAdapter<SpinnerJMItem>(this,
                 android.R.layout.simple_expandable_list_item_1, listJM);
 
-        ArrayAdapter<SpinnerJMItem> adapterDM= new ArrayAdapter<SpinnerJMItem>(context,
+        ArrayAdapter<SpinnerJMItem> adapterDM= new ArrayAdapter<SpinnerJMItem>(this,
                 android.R.layout.simple_expandable_list_item_1, listDM);
 
         spinnerJM.setAdapter(adapterJM);
@@ -120,6 +122,9 @@ public class VerificationActivity extends AppCompatActivity implements View.OnCl
                 final String pwd_dm = edit_pwd_DM.getText().toString();
                 Toast.makeText(context,"获取到账号密码为："+username_dm+"-"+pwd_dm,Toast.LENGTH_LONG).show();
                 new DMLoginTask().execute(username_dm,pwd_dm);
+                break;
+            case android.R.id.home:
+                Toast.makeText(getApplicationContext(),"点了",Toast.LENGTH_SHORT).show();
                 break;
         }
     }

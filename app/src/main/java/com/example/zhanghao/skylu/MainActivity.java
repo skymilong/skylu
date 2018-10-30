@@ -1,15 +1,19 @@
 package com.example.zhanghao.skylu;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -19,24 +23,37 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.zhanghao.skylu.fragment.VerificationFragment;
+import com.example.zhanghao.skylu.activities.ProxyActivity;
+import com.example.zhanghao.skylu.activities.VerificationActivity;
+import com.example.zhanghao.skylu.fragment.LogFragment;
+import com.example.zhanghao.skylu.fragment.OptionsFragment;
+import com.example.zhanghao.skylu.fragment.RunListsFragment;
+import com.example.zhanghao.skylu.httpTool.APICommonJM;
+import com.example.zhanghao.skylu.httpTool.InstanceYZ;
 import com.example.zhanghao.skylu.httpTool.SimpleHttp;
+import com.example.zhanghao.skylu.httpTool.dz.GetMobilenumResp;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,View.OnClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener,View.OnClickListener  {
 
-    private FragmentManager fragmentManager;
-    private FragmentTransaction ftransaction;
 
-    private VerificationFragment verificationFragment;
+    private TabLayout mTabTl;
+    private ViewPager mContentVp;
+    private EditText editText;
+
+    private List<String> tabIndicators;
+    private List<Fragment> tabFragments;
+    private ContentPagerAdapter contentAdapter;
+   // private List<GetMobilenumResp> source = new ArrayList<>();
+   // Handler handler = RunListsFragment.handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,34 +62,15 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                System.out.println("单机单机单机");
-                String url = "https://h5.ele.me/restapi/eus/login/mobile_send_code";
-                Map map = new HashMap();
-                map.put("captcha_hash","");
-                map.put("captcha_value","");
-                map.put("mobile","15873335975");
+        editText = (EditText) findViewById(R.id.editText_Log);
+        mTabTl = (TabLayout) findViewById(R.id.tab_content);
+        mContentVp = (ViewPager) findViewById(R.id.view_page_content);
 
-                Map<String,String> headers = new HashMap<String,String>();
-                SimpleHttp.doPost(url,map,headers,"UTF-8" ,new SimpleHttp.HttpCallback<String>() {
-                    @Override
-                    public void onSuccess(String response) {
-                        System.out.println(response);
-                       // textView.setText(response);
-                        Toast.makeText(getApplicationContext(),response,Toast.LENGTH_LONG).show();
-                    }
+        initTab();
+        initContent();
 
-                    @Override
-                    public void onError(String error) {
-                        System.out.println(error);
-                        Toast.makeText(getApplicationContext(),error,Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        });
+
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -84,6 +82,26 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
     }
 
+
+
+    private void initTab(){
+        ViewCompat.setElevation(mTabTl, 10);
+        mTabTl.setupWithViewPager(mContentVp);
+    }
+
+    private void initContent(){
+        tabIndicators = new ArrayList<>();
+        tabIndicators.add("运行");
+        tabIndicators.add("配置");
+        tabIndicators.add("日志");
+        tabFragments = new ArrayList<>();
+        tabFragments.add(new RunListsFragment());
+        tabFragments.add(new OptionsFragment());
+        tabFragments.add(new LogFragment());
+        contentAdapter = new ContentPagerAdapter(getSupportFragmentManager());
+        mContentVp.setOffscreenPageLimit(2);
+        mContentVp.setAdapter(contentAdapter);
+    }
 
 
 
@@ -127,19 +145,14 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            if(verificationFragment==null){
-                verificationFragment = new VerificationFragment();
-            }
-            goToFragment(verificationFragment);
+            Intent i = new Intent(this,VerificationActivity.class);
+            startActivity(i);
         } else if (id == R.id.nav_gallery) {
-
+            Intent i = new Intent(this,ProxyActivity.class);
+            startActivity(i);
         } else if (id == R.id.nav_slideshow) {
 
         } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
 
         }
 
@@ -150,18 +163,50 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onClick(View v) {
+        switch (v.getId()){
 
+
+        }
     }
 
-    private void goToFragment(Fragment fragment){
-        fragmentManager = getSupportFragmentManager();
-        ftransaction = fragmentManager.beginTransaction();
-        ftransaction.replace(R.id.main_fragment, fragment);
-        ftransaction.commit();
+    private Map<String,String> getJMProp(String ps){
+        Map<String,String> map = new HashMap<>();
+        SharedPreferences jm = getSharedPreferences(ps, MODE_PRIVATE);
+        String token = jm.getString(ps + ":token", "");
+        String uname = jm.getString(ps + ":uname", "");
+        String pwd = jm.getString(ps + ":pwd", "");
+        Log.i("获取接码配置：","获取到信息："+token);
+        map.put("token",token);
+        map.put("uid",uname);
+        map.put("pwd",pwd);
+
+        return map;
     }
 
-    private void closeAllFragment(){
 
+
+
+
+    class ContentPagerAdapter extends FragmentPagerAdapter {
+
+        public ContentPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return tabFragments.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return tabIndicators.size();
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return tabIndicators.get(position);
+        }
     }
 
 }
